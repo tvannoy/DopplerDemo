@@ -14,12 +14,12 @@ export default class DopplerSimulation {
       circle.y += circle.vy*dt;
       circle.r += circle.vr*dt;
       circle.time += dt;
-      if(circle.time > 5) {
+      if(circle.time > 2) {
         needsFiltering = true;
       }
     }
     if(needsFiltering) {
-      this.circles = this.circles.filter((circle) => circle.time <= 5);
+      this.circles = this.circles.filter((circle) => circle.time <= 2);
     }
   }
 

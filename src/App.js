@@ -2,39 +2,68 @@ import { useEffect, useState } from 'react';
 import { useWindowSize } from '@react-hook/window-size';
 import TouchManager from './touches';
 import Simulation from './simulation';
+import spectrum from './spectrum.json';
+
+const transformSpectrum = (stops) => {
+  const spec = [];
+  for(let i = 14; i < stops.length-20; i++) {
+    const {
+      offset, color
+    } = stops[i];
+// we could transform the color here too, but leaving it for now
+    spec.push({ offset: (offset-.189189)/(0.729730-.18918), color });
+  }
+  /*
+  for(let i = stops.length-2; i >= 0; i--) {
+    const {
+      offset, color
+    } = stops[i];
+// we could transform the color here too, but leaving it for now
+    spec.push({ offset: .5+(1-offset)*.5, color });
+  }
+  */
+
+  return spec;
+};
+
+const transformedSpectrum = transformSpectrum(spectrum);
 
 const appTouches = new TouchManager();
 const appSimulation = new Simulation();
 
 function App() {
   const [ width, height ] = useWindowSize();
-  const [ touches, setTouches ] = useState([]);
+//  const [ touches, setTouches ] = useState([]);
   const [ circles, setCircles ] = useState([]);
+
+//  const setCircles = () => {};
+//  const circles = [ { x: 100, y: 100, vx: 0, vy: 0, vr: 10, r: 100, time: 0 } ];
+  
 
   useEffect(() => {
     const onStart = (e) => {
       appTouches.touch(e);
-      setTouches(appTouches.getTouches());
+      //setTouches(appTouches.getTouches());
     };
     const onMove = (e) => {
       appTouches.touch(e);
-      setTouches(appTouches.getTouches());
+      //setTouches(appTouches.getTouches());
     };
     const onEnd = (e) => {
       appTouches.touch(e);
-      setTouches(appTouches.getTouches());
+      //setTouches(appTouches.getTouches());
     };
     const onMouseDown = (e) => {
       appTouches.mouseDown(e);
-      setTouches(appTouches.getTouches());
+      //setTouches(appTouches.getTouches());
     };
     const onMouseMove = (e) => {
       appTouches.mouseMove(e);
-      setTouches(appTouches.getTouches());
+      //setTouches(appTouches.getTouches());
     };
     const onMouseUp = (e) => {
       appTouches.mouseUp(e);
-      setTouches(appTouches.getTouches());
+      //setTouches(appTouches.getTouches());
     };
     let timerID;
     let lastUpdate = performance.now();
@@ -48,11 +77,11 @@ function App() {
     };
 
     let pulseID;
-    const pulsePeriod = 250;
+    const pulsePeriod = 100;
     const pulse = () => {
       const touches = appTouches.getTouches();
       for(let touch of touches) {
-        appSimulation.addCircle(touch.lastX, touch.lastY, 0, touch.vx, touch.vy, 100);
+        appSimulation.addCircle(touch.lastX, touch.lastY, 0, touch.vx, touch.vy, 300);
       }
       pulseID = setTimeout(pulse, pulsePeriod);
     };
@@ -81,8 +110,17 @@ function App() {
   }, []);
   return (
   <svg width={width} height={height} viewport={"0 0 " + width + " " + height}>
+  <linearGradient id="spectrum">
+    { transformedSpectrum.map(({ offset, color }) => <stop key={offset} offset={offset} style={ { stopColor: "rgb(" + color[0]*255 + "," + color[1]*255 + "," + color[2]*255 + ")" } }/>) }
+  </linearGradient>
   {/* touches.map((touch, idx) => <text key={touch.id} x={10} y={20+20*idx}>{touch.id} - {touch.lastX},{touch.lastY},{touch.vx},{touch.vy}</text>) */}
-  { circles.map((circle) => <circle key={circle.id} cx={circle.x} cy={circle.y} r={circle.r} fill="none" stroke="black" opacity={((5-circle.time)/5)*((5-circle.time)/5)}/>) }
+  { circles.map((circle) => {
+      let angle = 180;
+      if((circle.vx*circle.vx+circle.vy*circle.vy) > .00001) {
+        angle = Math.atan2(circle.vy, circle.vx)*180/Math.PI+180;
+      }
+      return <circle key={circle.id} cx={circle.x} cy={circle.y} r={circle.r} fill="none" stroke="url(#spectrum)" opacity={((2-circle.time)/2)*((2-circle.time)/2)} strokeWidth={10} transform={"rotate(" + angle + "," + circle.x + "," + circle.y + ")"} />
+    }) }
   </svg>
   );
 }
