@@ -77,7 +77,7 @@ function App() {
     };
 
     let pulseID;
-    const pulsePeriod = 100;
+    const pulsePeriod = 250;
     const pulse = () => {
       const touches = appTouches.getTouches();
       for(let touch of touches) {
